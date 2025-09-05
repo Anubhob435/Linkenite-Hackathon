@@ -22,6 +22,15 @@ class IMAPEmailProvider(EmailProvider):
                  username: str,
                  password: str,
                  use_ssl: bool = True):
+        if not host:
+            raise ValueError("IMAP host is required")
+        if not username:
+            raise ValueError("IMAP username is required")
+        if not password:
+            raise ValueError("IMAP password is required")
+        if not isinstance(port, int) or port <= 0:
+            raise ValueError("IMAP port must be a positive integer")
+            
         self.host = host
         self.port = port
         self.username = username

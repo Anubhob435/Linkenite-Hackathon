@@ -4,6 +4,8 @@ Email provider factory for creating provider instances.
 from typing import Dict, Any
 from backend.email_providers.base import EmailProvider
 from backend.email_providers.imap import IMAPEmailProvider
+from backend.email_providers.gmail import GmailEmailProvider
+from backend.email_providers.outlook import OutlookEmailProvider
 
 
 def create_email_provider(provider_type: str, config: Dict[str, Any]) -> EmailProvider:
@@ -28,10 +30,50 @@ def create_email_provider(provider_type: str, config: Dict[str, Any]) -> EmailPr
             use_ssl=config.get("use_ssl", True)
         )
     elif provider_type.lower() == "gmail":
-        # For Gmail, we would use the Gmail API
-        raise NotImplementedError("Gmail provider not yet implemented")
+        return GmailEmailProvider(
+            client_id=config.get("client_id"),
+            client_secret=config.get("client_secret"),
+            refresh_token=config.get("refresh_token"),
+            access_token=config.get("access_token")
+        )
     elif provider_type.lower() == "outlook":
-        # For Outlook, we would use the Outlook Graph API
-        raise NotImplementedError("Outlook provider not yet implemented")
+        return OutlookEmailProvider(
+            client_id=config.get("client_id"),
+            client_secret=config.get("client_secret"),
+            refresh_token=config.get("refresh_token"),
+            access_token=config.get("access_token"),
+            tenant_id=config.get("tenant_id", "common")
+        )
     else:
         raise ValueError(f"Unsupported email provider type: {provider_type}")
+
+
+def get_supported_providers() -> Dict[str, Dict[str, Any]]:
+    """Get information about supported email providers.
+    
+    Returns:
+        Dictionary with provider information
+    """
+    return {
+        "imap": {
+            "name": "IMAP",
+            "description": "Generic IMAP email server",
+            "auth_type": "basic",
+            "required_fields": ["host", "port", "username", "password"],
+            "optional_fields": ["use_ssl"]
+        },
+        "gmail": {
+            "name": "Gmail",
+            "description": "Google Gmail via API",
+            "auth_type": "oauth2",
+            "required_fields": ["client_id", "client_secret"],
+            "optional_fields": ["refresh_token", "access_token"]
+        },
+        "outlook": {
+            "name": "Outlook",
+            "description": "Microsoft Outlook via Graph API",
+            "auth_type": "oauth2",
+            "required_fields": ["client_id", "client_secret"],
+            "optional_fields": ["refresh_token", "access_token", "tenant_id"]
+        }
+    }
